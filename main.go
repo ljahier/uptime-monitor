@@ -1,54 +1,86 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
+
+	probing "github.com/prometheus-community/pro-bing"
 )
 
-type Resource struct {
-	URL       string
-	Status    string
-	LastCheck time.Time
+type MonitorConfig struct {
+	Name            string `json:"name"`
+	Hostname        string `json:"hostname"`
+	Port            int16  `json:"port"`
+	AlertThreshold  int8   `json:"alertThreshold"`
+	PollingInterval int16  `json:"pollingInterval"`
+	RequestType     string `json:"requestType"`
 }
 
-func (r *Resource) Check() error {
-	// Code pour vérifier l'état de la ressource ici
-	resp, err := http.Get(r.URL)
-	// Si une erreur se produit, renvoyer l'erreur
+type Monitor struct {
+	Status       bool
+	StatusCode   int
+	ResponseTime time.Duration
+	Config       MonitorConfig
+}
+
+func (m *Monitor) checkICMP() {
+	pinger, err := probing.NewPinger(m.Config.Hostname)
+
 	if err != nil {
-		return err
+		log.Default().Println(err)
+	}
+	pinger.Count = 3
+	err = pinger.Run()
+
+	if err != nil {
+		log.Default().Println(err)
+	}
+	m.Status, m.ResponseTime = true, pinger.Statistics().AvgRtt
+
+}
+
+func (m *Monitor) checkHTTP() {
+	if m.Config.Port == 0 {
+		m.Config.Port = 80
+	}
+	resp, err := http.Get(fmt.Sprintf("%s:%d", m.Config.Hostname, m.Config.Port))
+
+	if err != nil {
+		log.Default().Println(err)
+		m.Status, m.StatusCode = false, 0
+
+		return
 	}
 	defer resp.Body.Close()
+	m.Status, m.StatusCode = true, resp.StatusCode
 
-	// Si tout se passe bien, mettre à jour r.Status et r.LastCheck
-	if resp.StatusCode == http.StatusOK {
-		r.Status = "OK"
-	} else {
-		r.Status = "ERROR"
-	}
-	r.LastCheck = time.Now()
-	return nil
-}
-
-func Monitor(resources []*Resource, interval time.Duration) {
-	for {
-		fmt.Println("hello")
-		for _, r := range resources {
-			fmt.Println("world")
-			err := r.Check()
-			if err != nil {
-				fmt.Printf("Erreur lors de la vérification de l'état de %s : %s\n", r.URL, err.Error())
-			}
-		}
-		time.Sleep(interval)
-	}
 }
 
 func main() {
-	resources := []*Resource{
-		{URL: "http://www.example.com"},
-		{URL: "http://www.example.net"},
+	rawConfigFile, err := os.ReadFile("./config.json") // TODO: Replace config file path using cli args -c /path/to/config/file
+
+	if err != nil {
+		panic("Cannot read config file")
 	}
-	Monitor(resources, 1*time.Minute)
+	var configs []MonitorConfig
+
+	json.Unmarshal(rawConfigFile, &configs)
+	for _, config := range configs {
+		monitor := Monitor{Config: config}
+
+		if monitor.Config.RequestType == "HTTP" {
+			monitor.checkHTTP()
+		}
+		if monitor.Config.RequestType == "ICMP" {
+			monitor.checkICMP()
+		}
+
+		// TODO: Setup alerting here if something is wrong
+		// TODO: Expose HTTP Status page
+		log.Default().Println(monitor)
+	}
 }

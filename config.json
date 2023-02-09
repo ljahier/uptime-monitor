@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Google",
+    "hostname": "https://google.com",
+    "port": 443,
+    "alertThreshold": 3,
+    "pollingInterval": 30,
+    "requestType": "HTTP"
+  },
+  {
+    "name": "Cloudflare DNS",
+    "hostname": "1.1.1.1",
+    "port": 53,
+    "alertThreshold": 3,
+    "pollingInterval": 30,
+    "requestType": "TCP"
+  },
+  {
+    "name": "Local Node App",
+    "hostname": "127.0.0.1",
+    "port": 8081,
+    "alertThreshold": 3,
+    "pollingInterval": 30,
+    "requestType": "HTTP"
+  },
+  {
+    "name": "Google DNS",
+    "hostname": "8.8.8.8",
+    "alertThreshold": 3,
+    "pollingInterval": 30,
+    "requestType": "ICMP"
+  }
+]
