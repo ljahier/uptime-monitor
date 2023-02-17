@@ -36,6 +36,8 @@ func main() {
 	pad.Clear()
 
 	for {
+		y := 0
+		x := 0
 		wg.Add(len(configs))
 		c := make(chan monitor.Monitor)
 		for i, config := range configs {
@@ -43,14 +45,20 @@ func main() {
 			go monitor.Check(&wg, c)
 			tmp := <-c // TODO: probleme de mutex, 3 et 4 ecrivent en meme temps sur "c" ce qui fait que seulment une des deux value est prise en compte
 			fmt.Println(i, " = ", tmp)
+			if i > 8 {
+				y += 1
+				x = i - 8
+			} else {
+				x = i
+			}
 			if tmp.HasChecked {
 				if tmp.Config.RequestType == "HTTP" && tmp.StatusCode >= 200 && tmp.StatusCode <= 299 {
-					pad.Light(0, 0, 3, 0)
+					pad.Light(x, y, 3, 0)
 				} else if tmp.Config.RequestType == "ICMP" {
-					if tmp.ResponseTime > 10 {
-						pad.Light(i, 0, 3, 3)
+					if tmp.ResponseTime > 15*time.Millisecond {
+						pad.Light(x, y, 3, 3)
 					} else {
-						pad.Light(i, 0, 3, 0)
+						pad.Light(x, y, 3, 0)
 					}
 				}
 			}
