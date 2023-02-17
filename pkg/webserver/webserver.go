@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	// monitor "github.com/ljahier/uptime-monitor/pkg/monitor"
 )
 
 func RunWebServer() {
@@ -14,5 +15,6 @@ func RunWebServer() {
 			"message": "pong",
 		})
 	})
+
 	r.Run(":8081")
 }

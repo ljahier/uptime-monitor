@@ -58,14 +58,14 @@ func (m *Monitor) checkHTTP() {
 	m.HasChecked, m.Status, m.StatusCode = true, true, resp.StatusCode
 }
 
-func (m Monitor) Check(wg *sync.WaitGroup) {
+func (m Monitor) Check(wg *sync.WaitGroup, c chan Monitor) {
 	if m.Config.RequestType == "HTTP" {
 		m.checkHTTP()
 	}
 	if m.Config.RequestType == "ICMP" {
 		m.checkICMP()
 	}
-
+	c <- m
 	// TODO: Setup alerting here if something is wrong
 	// TODO: Expose HTTP Status page
 	if m.HasChecked {
