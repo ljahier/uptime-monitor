@@ -10,7 +10,6 @@
   {
     "name": "Cloudflare DNS",
     "hostname": "1.1.1.1",
-    "port": 53,
     "alertThreshold": 3,
     "pollingInterval": 30,
     "requestType": "TCP"
