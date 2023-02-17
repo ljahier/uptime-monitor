@@ -12,7 +12,7 @@
     "hostname": "1.1.1.1",
     "alertThreshold": 3,
     "pollingInterval": 30,
-    "requestType": "TCP"
+    "requestType": "ICMP"
   },
   {
     "name": "Local Node App",
@@ -28,5 +28,13 @@
     "alertThreshold": 3,
     "pollingInterval": 30,
     "requestType": "ICMP"
+  },
+  {
+    "name": "JobsVentures",
+    "hostname": "https://www.jobsventures.com",
+    "port": 443,
+    "alertThreshold": 3,
+    "pollingInterval": 60,
+    "requestType": "HTTP"
   }
 ]
